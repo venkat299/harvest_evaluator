@@ -1,0 +1,33 @@
+{
+  "name": "harvest_evaluator",
+  "version": "1.0.0",
+  "description": "\"process order calls from strategy and controls portfolio budget\"",
+  "main": "index.js",
+  "directories": {
+    "example": "examples",
+    "test": "test"
+  },
+  "dependencies": {
+    "chai": "^3.5.0"
+  },
+  "devDependencies": {
+    "mocha": "^2.4.5"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "keywords": [
+    "harvest",
+    "evaluator"
+  ],
+  "author": "Venkatesh Duraiarasan",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/venkat299/harvest_evaluator.git"
+  },
+  "bugs": {
+    "url": "https://github.com/venkat299/harvest_evaluator/issues"
+  },
+  "homepage": "https://github.com/venkat299/harvest_evaluator#readme"
+}
