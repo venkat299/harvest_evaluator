@@ -8,7 +8,9 @@
     "test": "test"
   },
   "dependencies": {
-    "chai": "^3.5.0"
+    "chai": "^3.5.0",
+    "lokijs": "^1.3.16",
+    "seneca": "^2.0.1"
   },
   "devDependencies": {
     "mocha": "^2.4.5"
