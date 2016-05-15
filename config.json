@@ -1,0 +1,15 @@
+{
+
+	"test": {
+		"db_type": "mongo-store",
+		"db_config": {
+			"name": "harvest_test",
+			"host": "127.0.0.1",
+			"port": 27017
+		},
+		"db_uri":"mongodb://127.0.0.1:27017/harvest_test"
+
+	}
+
+
+}
