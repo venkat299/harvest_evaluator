@@ -23,6 +23,7 @@
   "devDependencies": {
     "mkdirp": "^0.5.1",
     "mocha": "^2.4.5",
+    "mocha-lcov-reporter": "^1.2.0",
     "seneca-jsonfile-store": "^0.2.2",
     "seneca-level-store": "^0.2.3"
   },
