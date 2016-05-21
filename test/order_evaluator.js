@@ -188,7 +188,7 @@ function initialize(done) {
 			entity_1_save$(),
 			entity_2_save$()
 		]).then(function(res) {
-			console.log('insert', res)
+			//console.log('insert', res)
 			done()
 		})
 	//})

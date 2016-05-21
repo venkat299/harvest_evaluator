@@ -1,5 +1,6 @@
 {
 	"test": {
+		"current_db":"json",
 		"mongo": {
 			"db_type": "mongo-store",
 			"db_config": {

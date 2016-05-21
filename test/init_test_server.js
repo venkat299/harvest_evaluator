@@ -10,6 +10,11 @@ var Promise = require('bluebird')
 
 var config = require('../config.json')
 
+// ======= change db here =========
+var test_db = config.test.current_db
+// ================================
+var test_db_name = config.test[test_db].db_type
+var test_db_config = config.test[test_db].db_config
 
 
 // ###### service needed for testing  ########
@@ -26,21 +31,15 @@ seneca.use('../index.js')
 
 // ###### testing module ########
 function start(cb) {
-	//=========== test env db ========== //
-	//using mongo
-	//seneca.use(config.test.mongo.db_type, config.test.mongo.db_config)
-	//using level_store
-	//seneca.use(config.test.level.db_type, config.test.level.db_config)
-	//using json_file_store
-	seneca.use(config.test.json.db_type, config.test.json.db_config)
+	// ###### resetting db  ########
+	reset_db()
 
-	//================================= //
+	// ###### adding test db  ########
+	seneca.use(test_db_name, test_db_config)
 
-
-
+	// ###### returning a promise that db is configured  ########
 	return new Promise(function(resolve, reject) {
 		seneca.ready(function() {
-
 			seneca.add('role:test_server,cmd:check_status', function(opt, cb) {
 				cb(null, {
 					success: true,
@@ -48,22 +47,32 @@ function start(cb) {
 					server_type: 'test'
 				})
 			})
-
 			seneca.listen()
 			resolve(seneca)
 			console.log('test server listening')
-
-
 		})
 	})
-
 }
 
-var intialize_db_json = function() {
-	var mkdirp = require('mkdirp');
-	mkdirp(config.test.json.db_config, function(err) {
-		// path exists unless there was an error
-	});
+var reset_db = function() {
+
+	// ###### for mongo db  ########
+	if (test_db === 'mongo') {
+		// drop mongo db
+	}
+	// ###### for level db and json-file db  ########
+	else {
+		// ######### removing db directories #########
+		rmDir(test_db_config.folder, false)
+			// ######### creating empty db directory #########
+		var mkdirp = require('mkdirp');
+		mkdirp(test_db_config.folder, function(err) {
+			// path exists unless there was an error
+			if (err)
+				throw err
+		});
+	}
+
 }
 var rmDir = function(dirPath, removeSelf) {
 	if (removeSelf === undefined)
