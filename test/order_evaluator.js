@@ -7,15 +7,19 @@ var mongoose = require('mongoose')
 
 var config = require('../config.json')
 
-var seneca = require('seneca')()
-seneca.client(); // -- integration test
-//seneca.use('../index.js') // --module test
+// ###### initializing test server ########
+var intialize_server = require('./init_test_server.js')
+
+var seneca;
+//seneca.use('entity')
+
 
 //=========== mock data ============
 var route = 'role:evaluator,cmd:buy'
 var process_order_dt = {
 	tradingsymbol: 'YESBANK',
 	strategy_id: 'fifty_2_wk',
+	transaction_type:'BUY',
 	track_id: null,
 	ltp: 100
 }
@@ -52,24 +56,15 @@ var order_executed_dt = {
 	}
 	//==================================
 
-//=========== mock db ============
-seneca.use('entity')
-seneca.use(config.test.db_type, config.test.db_config)
 
-//==================================
-// beforeEach(function(done) {
-//   DB.drop(function(err) {
-//     if (err) return done(err)
-//     DB.fixtures(fixtures, done)
-//   })
-// })
 
 describe('Order_evaluator{}', function() {
 
-	before('initialize_db', initialize_db)
+	before('initialize', initialize)
+    //after('clearing db', clear_db)
 
 	describe('#buy() -> default test', function() {
-		var curr_track_id = 'role:evaluator,cmd:buy'
+		var curr_track_id = 'role:evaluator,cmd:evaluate'
 		it('should return a proper/standard api response', function(done) {
 			seneca.act(curr_track_id, process_order_dt, function(err, val) {
 				default_api_test(err, val, done)
@@ -82,14 +77,17 @@ describe('Order_evaluator{}', function() {
 				default_api_test(err, val, done)
 			})
 		});
+
 		// it('should create an entry in db after relaying order info to executor', function(done) {
 		// 	seneca.act(curr_track_id, process_order_dt, function(err, val) {
+
 
 		// 		check_order_info(err, val)
 		// 		default_api_test(err, val, done)
 		// 	})
 		// });
 	});
+
 	// describe('#buy() -> check msg object ', function() {
 	// 	var curr_track_id = 'role:evaluator,cmd:buy'
 		
@@ -105,8 +103,7 @@ describe('Order_evaluator{}', function() {
 	// 	});
 	// });
 
-	after('clearing db', clear_db)
-
+	
 })
 
 
@@ -138,12 +135,33 @@ var default_api_test = function(err, val, cb) {
 	cb();
 }
 
-function initialize_db(done) {
+function initialize(done) {
+	intialize_server.start().then(function(my_seneca){
+		//console.log(my_seneca)
+		seneca = my_seneca
+		seneca.client(); 
 
-	mongoose.connect(config.test.db_uri)
+// -- integration test
+//seneca.use('../index.js') // --module test
+
+	//mongoose.connect(config.test.db_uri)
 		// Promise.promisify(seneca.make$, {
 		// 	context: seneca
 		// })
+
+//=========== mock db ============
+//seneca.use('entity')
+//seneca.use(config.test.db_type, config.test.db_config)
+
+//==================================
+// beforeEach(function(done) {
+//   DB.drop(function(err) {
+//     if (err) return done(err)
+//     DB.fixtures(fixtures, done)
+//   })
+// })
+
+
 	var entity_1 = seneca.make$('strategy', {
 		strategy_id: 'fifty_2_wk',
 		budget: 10000,
@@ -165,21 +183,24 @@ function initialize_db(done) {
 
 
 	seneca.ready(function() {
-		mongoose.connection.db.dropDatabase(function(err, result) {
+		//mongoose.connection.db.dropDatabase(function(err, result) {
 		Promise.all([
 			entity_1_save$(),
 			entity_2_save$()
 		]).then(function(res) {
-			seneca.log.info('insert', res)
+			console.log('insert', res)
 			done()
 		})
-	})
+	//})
 })
+	})
+
+
 }
 
 function clear_db(done) {
 	//mongoose.connection.db.dropDatabase(function(err, result) {
-		mongoose.connection.close()
+		//mongoose.connection.close()
 		done()
 	//})
 }

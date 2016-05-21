@@ -1,15 +1,26 @@
 {
-
 	"test": {
-		"db_type": "mongo-store",
-		"db_config": {
-			"name": "harvest_test",
-			"host": "127.0.0.1",
-			"port": 27017
+		"mongo": {
+			"db_type": "mongo-store",
+			"db_config": {
+				"name": "harvest_test",
+				"host": "127.0.0.1",
+				"port": 27017
+			},
+			"db_uri": "mongodb://127.0.0.1:27017/harvest_test"
+
 		},
-		"db_uri":"mongodb://127.0.0.1:27017/harvest_test"
-
+		"level": {
+			"db_type": "level-store",
+			"db_config": {
+				"folder": "./test/test_db"
+			}
+		},
+		"json": {
+			"db_type": "jsonfile-store",
+			"db_config": {
+				"folder": "./test/test_db"
+			}
+		}
 	}
-
-
 }

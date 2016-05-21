@@ -1,12 +1,16 @@
 # harvest_evaluator
 
-###### #buy()
-- [x] should accept `buy` signal from `Strategy#run()`
-- [x] should query for more detail for building order object
-- [ ] should check for similiar pending order for same stock and strategy **--to be reviewed**
-      - [ ] should discard if similiar order is present **--to be reviewed**
+###### #evaluate()
+- [x] should process the order signal object (`BUY || SELL`)
+- [x] should query more detail for building the order object
+- [ ] for `BUY` signal
+	- [ ] calculate the allowed quantity to buy
+	- [ ] if the qty is present in order signal object, then it should check whether the quantity is below the allowed quantity
+- [ ] for `SELL` signal
+	- [ ] *todo*
+- [ ] should add entry in the db before relaying order to `executor` with status `INIT`
 - [ ] should place the order to `Executor#place_order()`
-- [x] should add entry in db after relaying order to `executor` with status `PLACED`
+- [ ] should add entry in the db after relaying the order to `executor` with status `PLACED`
  
 
 
@@ -20,3 +24,10 @@
 - [ ] should relay back the order completion `COMPLETE` information to `Strategy#register_order()`
 
 
+###### db collections
+
+- [ ] owned
+	-[ ] order_log
+- [ ] referred
+	-[ ] strategy
+	-[ ] strategy_stock
