@@ -86,7 +86,7 @@ var rmDir = function(dirPath, removeSelf) {
 	try {
 		var files = fs.readdirSync(dirPath);
 	} catch (e) {
-		throw e
+		//throw e
 		return;
 	}
 	if (files.length > 0)
