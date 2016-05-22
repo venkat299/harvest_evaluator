@@ -1,6 +1,6 @@
 # harvest_evaluator
 
-######spec_revision:0.0.1
+######spec_version:0.0.1
 
 ###### #evaluate()
 - [x] should process the order signal object (`BUY || SELL`)
