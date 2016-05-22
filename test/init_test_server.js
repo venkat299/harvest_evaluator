@@ -1,4 +1,5 @@
 var path = require('path')
+var fs = require('fs')
 var mkdirp = require('mkdirp')
 
 var seneca = require('seneca')();
@@ -37,6 +38,9 @@ function start(cb) {
 	// ###### adding test db  ########
 	seneca.use(test_db_name, test_db_config)
 
+	// ###### promisifying method act  ########
+	Promise.promisify(seneca.act,{context:seneca})
+
 	// ###### returning a promise that db is configured  ########
 	return new Promise(function(resolve, reject) {
 		seneca.ready(function() {
@@ -59,10 +63,12 @@ var reset_db = function() {
 	// ###### for mongo db  ########
 	if (test_db === 'mongo') {
 		// drop mongo db
+		console.log('clearing mongodb database')
 	}
 	// ###### for level db and json-file db  ########
 	else {
 		// ######### removing db directories #########
+		console.log('clearing db files')
 		rmDir(test_db_config.folder, false)
 			// ######### creating empty db directory #########
 		var mkdirp = require('mkdirp');
@@ -80,6 +86,7 @@ var rmDir = function(dirPath, removeSelf) {
 	try {
 		var files = fs.readdirSync(dirPath);
 	} catch (e) {
+		throw e
 		return;
 	}
 	if (files.length > 0)

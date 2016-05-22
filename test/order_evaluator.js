@@ -3,8 +3,6 @@ var chai = require('chai'),
 	assert = chai.assert,
 	should = chai.should();
 var Promise = require('bluebird')
-var mongoose = require('mongoose')
-
 var config = require('../config.json')
 
 // ###### initializing test server ########
@@ -19,7 +17,7 @@ var route = 'role:evaluator,cmd:buy'
 var process_order_dt = {
 	tradingsymbol: 'YESBANK',
 	strategy_id: 'fifty_2_wk',
-	transaction_type:'BUY',
+	transaction_type: 'BUY',
 	track_id: null,
 	ltp: 100
 }
@@ -36,23 +34,26 @@ var order_placed_dt = {
 
 }
 var order_executed_dt = {
-		"order_id": "16032300017157",
-		"exchange_order_id": "511220371736111",
-		"user_id": "AB0012",
-		"status": "COMPLETE",
+		track_id: "1463392269236/executor/YESBANK",
+		order_detail: {
+			"order_id": "151220000000000",
+			"exchange_order_id": "511220371736111",
+			"user_id": "AB0012",
+			"status": "COMPLETE",
 
-		"tradingsymbol": "TATAMOTORS",
-		"exchange": "NSE",
-		"transaction_type": "SELL",
+			"tradingsymbol": "YESBANK",
+			"exchange": "NSE",
+			"transaction_type": "BUY",
 
-		"average_price": 376.35,
-		"price": 376.35,
-		"quantity": 1,
-		"filled_quantity": 1,
-		"trigger_price": 0,
-		"status_message": "",
-		"order_timestamp": "2015-12-20 15:01:43",
-		"checksum": "5aa3f8e3c8cc41cff362de9f73212e28"
+			"average_price": 100.00,
+			"price": 100.00,
+			"quantity": 19,
+			"filled_quantity": 19,
+			"trigger_price": 0,
+			"status_message": "",
+			"order_timestamp": "2015-12-20 15:01:43",
+			"checksum": "5aa3f8e3c8cc41cff362de9f73212e28"
+		}
 	}
 	//==================================
 
@@ -61,7 +62,7 @@ var order_executed_dt = {
 describe('Order_evaluator{}', function() {
 
 	before('initialize', initialize)
-    //after('clearing db', clear_db)
+		//after('clearing db', clear_db)
 
 	describe('#buy() -> default test', function() {
 		var curr_track_id = 'role:evaluator,cmd:evaluate'
@@ -77,6 +78,17 @@ describe('Order_evaluator{}', function() {
 				default_api_test(err, val, done)
 			})
 		});
+		it('should add entry in order_log with status `init`,`placed`', function(done) {
+			seneca.act(curr_track_id, process_order_dt, function(err, val) {
+				expect(val.db_val.status_log).to.be.an('array')
+				expect(val.db_val.status_log[0][0]).to.equal('INIT')
+				expect(val.db_val.status_log[1][0]).to.equal('PLACED')
+				expect(val.db_val.order_id).to.exist
+				expect(val.cb_msg_obj.transaction_type).to.equal('BUY')
+				check_order_info(err, val)
+				default_api_test(err, val, done)
+			})
+		});
 
 		// it('should create an entry in db after relaying order info to executor', function(done) {
 		// 	seneca.act(curr_track_id, process_order_dt, function(err, val) {
@@ -87,23 +99,25 @@ describe('Order_evaluator{}', function() {
 		// 	})
 		// });
 	});
+	describe('#update_order() -> default test', function() {
+		var curr_track_id = 'role:evaluator,cmd:update_order'
+		it('should return a proper/standard api response\n\tshould update `order_log` collection entry status', function(done) {
+			seneca.act(curr_track_id, order_executed_dt, function(err, val) {
+				var order_id = val.cb_msg_obj.order_id
+				expect(order_id).to.exist
+				var order_log = seneca.make$('order_log')
+				order_log.list$({
+					order_id: order_id
+				}, function(err, order_log) {
+					expect(order_log[0].status).to.be.oneOf(['COMPLETE', 'CANCEL', 'REJECTED']);
+					default_api_test(err, val, done)
+				})
 
-	// describe('#buy() -> check msg object ', function() {
-	// 	var curr_track_id = 'role:evaluator,cmd:buy'
-		
-	// });
+			})
+		});
 
-	// describe("#register_order() -> check if status is updated to 'INITATED' to 'PLACED' in db", function() {
-	// 	var curr_track_id = 'role:evaluator,cmd:register_order'
-	// 	it('should return an obj {success:true,cb_msg:string}', function(done) {
-	// 		seneca.act(curr_track_id, process_order_dt, function(err, val) {
-				
-	// 			default_api_test(err, val, done)
-	// 		})
-	// 	});
-	// });
+	})
 
-	
 })
 
 
@@ -136,63 +150,63 @@ var default_api_test = function(err, val, cb) {
 }
 
 function initialize(done) {
-	intialize_server.start().then(function(my_seneca){
+	intialize_server.start().then(function(my_seneca) {
 		//console.log(my_seneca)
 		seneca = my_seneca
-		seneca.client(); 
+		seneca.client();
 
-// -- integration test
-//seneca.use('../index.js') // --module test
+		// -- integration test
+		//seneca.use('../index.js') // --module test
 
-	//mongoose.connect(config.test.db_uri)
+		//mongoose.connect(config.test.db_uri)
 		// Promise.promisify(seneca.make$, {
 		// 	context: seneca
 		// })
 
-//=========== mock db ============
-//seneca.use('entity')
-//seneca.use(config.test.db_type, config.test.db_config)
+		//=========== mock db ============
+		//seneca.use('entity')
+		//seneca.use(config.test.db_type, config.test.db_config)
 
-//==================================
-// beforeEach(function(done) {
-//   DB.drop(function(err) {
-//     if (err) return done(err)
-//     DB.fixtures(fixtures, done)
-//   })
-// })
-
-
-	var entity_1 = seneca.make$('strategy', {
-		strategy_id: 'fifty_2_wk',
-		budget: 10000,
-		spent: 2000,
-		equity_ceil: 0.2
-	})
-	var entity_1_save$ = Promise.promisify(entity_1.save$, {
-		context: entity_1
-	})
-	var entity_2 = seneca.make$('strategy_stock', {
-		strategy_id: 'fifty_2_wk',
-		tradingsymbol: 'YESBANK',
-		stock_ceil: 0.4,
-		nrr: 0.8
-	})
-	var entity_2_save$ = Promise.promisify(entity_2.save$, {
-		context: entity_2
-	})
+		//==================================
+		// beforeEach(function(done) {
+		//   DB.drop(function(err) {
+		//     if (err) return done(err)
+		//     DB.fixtures(fixtures, done)
+		//   })
+		// })
 
 
-	seneca.ready(function() {
-		//mongoose.connection.db.dropDatabase(function(err, result) {
-		Promise.all([
-			entity_1_save$(),
-			entity_2_save$()
-		]).then(function(res) {
-			//console.log('insert', res)
-			done()
+		var entity_1 = seneca.make$('strategy', {
+			strategy_id: 'fifty_2_wk',
+			budget: 10000,
+			spent: 2000,
+			equity_ceil: 0.2
 		})
-	//})
-})
+		var entity_1_save$ = Promise.promisify(entity_1.save$, {
+			context: entity_1
+		})
+		var entity_2 = seneca.make$('strategy_stock', {
+			strategy_id: 'fifty_2_wk',
+			tradingsymbol: 'YESBANK',
+			stock_ceil: 0.4,
+			nrr: 0.8
+		})
+		var entity_2_save$ = Promise.promisify(entity_2.save$, {
+			context: entity_2
+		})
+
+
+		seneca.ready(function() {
+			//mongoose.connection.db.dropDatabase(function(err, result) {
+			Promise.all([
+					entity_1_save$(),
+					entity_2_save$()
+				]).then(function(res) {
+					//console.log('insert', res)
+					done()
+				})
+				//})
+		})
 	})
 
 
@@ -200,7 +214,7 @@ function initialize(done) {
 
 function clear_db(done) {
 	//mongoose.connection.db.dropDatabase(function(err, result) {
-		//mongoose.connection.close()
-		done()
-	//})
+	//mongoose.connection.close()
+	done()
+		//})
 }
