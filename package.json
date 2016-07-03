@@ -10,18 +10,16 @@
   "dependencies": {
     "bluebird": "^3.3.5",
     "chai": "^3.5.0",
-    "harvest_data": "git+https://github.com/venkat299/harvest_data.git",
-    "harvest_executor": "git+https://github.com/venkat299/harvest_executor.git",
-    "harvest_strategy": "git+https://github.com/venkat299/harvest_strategy.git",
-    "loki": "0.0.0",
-    "lokijs": "^1.3.16",
-    "mongoose": "^4.4.17",
     "seneca": "^2.0.1",
     "seneca-entity": "0.0.1",
     "seneca-mongo-store": "^0.2.0"
   },
   "devDependencies": {
     "coveralls": "^2.11.9",
+    "harvest_data": "file:///Users/venkat299/code/harvest_api/harvest_data",
+    "harvest_evaluator": "file:///Users/venkat299/code/harvest_api/harvest_evaluator",
+    "harvest_executor": "file:///Users/venkat299/code/harvest_api/harvest_executor",
+    "harvest_strategy": "file:///Users/venkat299/code/harvest_api/harvest_strategy",
     "istanbul": "^0.4.3",
     "mkdirp": "^0.5.1",
     "mocha": "^2.4.5",
@@ -30,7 +28,7 @@
     "seneca-level-store": "^0.2.3"
   },
   "scripts": {
-    "test": "mocha",
+    "test": "mocha  --recursive",
     "coverage": "istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R spec && cat ./coverage/lcov.info"
   },
   "keywords": [

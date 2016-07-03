@@ -4,5 +4,5 @@
 
 [![Coverage Status](https://coveralls.io/repos/github/venkat299/harvest_evaluator/badge.svg?branch=master)](https://coveralls.io/github/venkat299/harvest_evaluator?branch=master)
 
-microservice - evaluates order signals from harvest_strategy
-and place orders to harvest_executor
+microservice lib - evaluates order signals from harvest_strategy
+and places orders to harvest_executor
