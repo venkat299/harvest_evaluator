@@ -12,7 +12,8 @@
     "chai": "^3.5.0",
     "seneca": "^2.0.1",
     "seneca-entity": "0.0.1",
-    "seneca-mongo-store": "^0.2.0"
+    "seneca-mongo-store": "^0.2.0",
+    "winston": "^2.2.0"
   },
   "devDependencies": {
     "coveralls": "^2.11.9",
@@ -21,10 +22,9 @@
     "eslint-plugin-import": "^1.11.0",
     "eslint-plugin-jsx-a11y": "^2.0.1",
     "eslint-plugin-react": "^5.2.2",
-    "harvest_data": "file:///Users/venkat299/code/harvest_api/harvest_data",
-    "harvest_evaluator": "file:///Users/venkat299/code/harvest_api/harvest_evaluator",
-    "harvest_executor": "file:///Users/venkat299/code/harvest_api/harvest_executor",
-    "harvest_strategy": "file:///Users/venkat299/code/harvest_api/harvest_strategy",
+    "harvest_data": "git+https://github.com/venkat299/harvest_data",
+    "harvest_executor": "git+https://github.com/venkat299/harvest_executor",
+    "harvest_strategy": "git+https://github.com/venkat299/harvest_strategy.git#development",
     "istanbul": "^0.4.3",
     "mkdirp": "^0.5.1",
     "mocha": "^2.4.5",
