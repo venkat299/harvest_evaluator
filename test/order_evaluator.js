@@ -7,6 +7,7 @@ const expect = chai.expect;
 const assert = chai.assert;
 const should = chai.should();
 const Promise = require('bluebird');
+const logger = require('winston');
 const config = require('../config.json');
 // ###### initializing test server ########
 const intialize_server = require('./init_test_server.js');
@@ -52,80 +53,6 @@ const order_executed_dt = {
     checksum: '5aa3f8e3c8cc41cff362de9f73212e28',
   },
 };
-//= =================================
-describe('Order_evaluator{}-> shadowing mode', function () {
-  before('initialize', initialize);
-  // after('clearing db', clear_db)
-  describe('#buy() -> default test', function () {
-    const curr_track_id = 'role:evaluator,cmd:evaluate';
-    // it('should return a proper/standard api response', function(done) {
-    //     seneca.act(curr_track_id, process_order_dt, function(err, val) {
-    //         default_api_test(err, val, done)
-    //     })
-    // });
-    // it('should return a proper cb_msg_obj for "BUY" call', function(done) {
-    //     seneca.act(curr_track_id, process_order_dt, function(err, val) {
-    //         expect(val.cb_msg_obj.transaction_type).to.equal('BUY')
-    //         check_order_info(err, val)
-    //         default_api_test(err, val, done)
-    //     })
-    // });
-    it('should add entry in order_log with status `init`,`placed`', function (done) {
-      this.timeout(15000);
-      seneca.act(curr_track_id, process_order_dt, function (err, val) {
-        if (err) done(err);
-        expect(val.db_val.status_log).to.be.an('array');
-        expect(val.db_val.status_log[0][0]).to.equal('INIT');
-        expect(val.db_val.status_log[1][0]).to.equal('PLACED');
-        expect(val.db_val.order_id).to.exist;
-        // console.log('expect', 'val.db_val.order_id:', val.db_val.order_id)
-        expect(val.cb_msg_obj.transaction_type).to.equal('BUY');
-        check_order_info(err, val);
-        default_api_test(err, val);
-        setTimeout((function (opt, done, expect) {
-          console.log('L81:test checking response from kite has come');
-          const order_id = val.db_val.order_id;
-          expect(order_id).to.exist;
-          // console.log('expect', 'order_id:', order_id)
-          const order_log = seneca.make$('order_log');
-          order_log.list$({
-            order_id,
-          }, function (err, order_log) {
-            // console.log('L88', 'err:', err, 'order_log:', order_log)
-            if (err) done(err);
-            // expect(order_log[0].status).to.be.oneOf(['PLACED']);
-            expect(order_log[0].status).to.be.oneOf(['COMPLETE', 'CANCEL', 'REJECTED']);
-            // default_api_test(err, val)
-            done();
-          });
-        }), 3000, val, done, expect);
-        // done()
-      });
-    });
-    // it('should create an entry in db after relaying order info to executor', function(done) {
-    //  seneca.act(curr_track_id, process_order_dt, function(err, val) {
-    //      check_order_info(err, val)
-    //      default_api_test(err, val, done)
-    //  })
-    // });
-  });
-  // describe('#update_order() -> default test', function() {
-  //     var curr_track_id = 'role:evaluator,cmd:update_order'
-  //     it('should return a proper/standard api response\n\tshould update `order_log` collection entry status', function(done) {
-  //         seneca.act(curr_track_id, order_executed_dt, function(err, val) {
-  //             var order_id = val.cb_msg_obj.order_id
-  //             expect(order_id).to.exist
-  //             var order_log = seneca.make$('order_log')
-  //             order_log.list$({
-  //                 order_id: order_id
-  //             }, function(err, order_log) {
-  //                 expect(order_log[0].status).to.be.oneOf(['COMPLETE', 'CANCEL', 'REJECTED']);
-  //                 default_api_test(err, val, done)
-  //             })
-  //         })
-  //     });
-  // })
-});
 
 function check_order_info(err, val) {
   expect(val.cb_msg).to.match(/role:executor,cmd:place_order/);
@@ -199,3 +126,122 @@ function initialize(done) {
     });
   });
 }
+
+// ==================================
+describe('Order_evaluator{}-> shadowing mode', function () {
+  const global = this;
+  before('initialize', initialize);
+  // after('clearing db', clear_db)
+  describe('#buy() -> auto_approve:false', function() {
+    let order_id = null;
+    it('should add entry in order_log with status `init`', (done) => {
+      const curr_track_id = 'role:evaluator,cmd:evaluate';
+      seneca.act(curr_track_id, process_order_dt, (err, val) => {
+        if (err) done(err);
+        expect(val.db_val.status_log).to.be.an('array');
+        expect(val.db_val.status_log[0][0]).to.equal('INIT');
+        expect(val.db_val.order_id).to.exist;
+        expect(val.cb_msg_obj.transaction_type).to.equal('BUY');
+        check_order_info(err, val);
+        default_api_test(err, val);
+        const order_log = seneca.make$('order_log');
+        order_id = val.db_val.order_id;
+        logger.debug('order_id:', order_id);
+        order_log.list$({
+          order_id: val.db_val.order_id,
+        }, ($err, $order_log) => {
+          if ($err) done($err);
+          expect($order_log[0].status).to.be.oneOf(['INIT']);
+          expect($order_log[0].is_approved).to.be.false;
+          done();
+        });
+      });
+    });
+    it('should approve order and forward to executor', function(done){
+      this.timeout(15000);
+      const curr_track_id = 'role:evaluator,cmd:approve_order';
+      logger.debug('order_id', order_id);
+      seneca.act(curr_track_id, {
+        order_id,
+      }, (err, val) => {
+        if (err) done(err);
+        expect(val.db_val.status_log).to.be.an('array');
+        expect(val.db_val.status_log[1][0]).to.equal('PLACED');
+        expect(val.db_val.is_approved).to.be.true;
+        expect(val.cb_msg_obj.transaction_type).to.equal('BUY');
+        check_order_info(err, val);
+        default_api_test(err, val);
+        setTimeout(((opt, $done, $expect) => {
+          logger.debug('L81:test checking response from kite has come');
+          $expect(order_id).to.exist;
+          const order_log = seneca.make$('order_log');
+          order_log.list$({
+            order_id,
+          }, ($err, $order_log) => {
+            // logger.debug('L88', '$err:', $err, '$order_log:', $order_log)
+            if ($err) $done($err);
+            // $expect($order_log[0].status).to.be.oneOf(['PLACED']);
+            $expect($order_log[0].status).to.be.oneOf(['COMPLETE', 'CANCEL', 'REJECTED']);
+            // default_api_test($err, val)
+            $done();
+          });
+        }), 3000, val, done, expect);
+        // done();
+      });
+    });
+    // it('should add entry in order_log with status `init`,`placed`', function (done) {
+    //   this.timeout(15000);
+    //   seneca.act(curr_track_id, process_order_dt, function (err, val) {
+    //     if (err) done(err);
+    //     expect(val.db_val.status_log).to.be.an('array');
+    //     expect(val.db_val.status_log[0][0]).to.equal('INIT');
+    //     // expect(val.db_val.status_log[1][0]).to.equal('PLACED');
+    //     // expect(val.db_val.order_id).to.exist;
+    //     // logger.debug('expect', 'val.db_val.order_id:', val.db_val.order_id)
+    //     expect(val.cb_msg_obj.transaction_type).to.equal('BUY');
+    //     check_order_info(err, val);
+    //     default_api_test(err, val);
+    //     // setTimeout((function (opt, done, expect) {
+    //     //   console.log('L81:test checking response from kite has come');
+    //     //   const order_id = val.db_val.order_id;
+    //     //   expect(order_id).to.exist;
+    //     //   // console.log('expect', 'order_id:', order_id)
+    //     //   const order_log = seneca.make$('order_log');
+    //     //   order_log.list$({
+    //     //     order_id,
+    //     //   }, function (err, order_log) {
+    //     //     // console.log('L88', 'err:', err, 'order_log:', order_log)
+    //     //     if (err) done(err);
+    //     //     // expect(order_log[0].status).to.be.oneOf(['PLACED']);
+    //     //     expect(order_log[0].status).to.be.oneOf(['COMPLETE', 'CANCEL', 'REJECTED']);
+    //     //     // default_api_test(err, val)
+    //     //     done();
+    //     //   });
+    //     // }), 3000, val, done, expect);
+    //     done();
+    //   });
+    // });
+    // it('should create an entry in db after relaying order info to executor', function(done) {
+    //  seneca.act(curr_track_id, process_order_dt, function(err, val) {
+    //      check_order_info(err, val)
+    //      default_api_test(err, val, done)
+    //  })
+    // });
+    // describe('#update_order() -> default test', function() {
+    //     var curr_track_id = 'role:evaluator,cmd:update_order'
+    //     it('should return a proper/standard api response\n\tshould update `order_log` collection entry status', function(done) {
+    //         seneca.act(curr_track_id, order_executed_dt, function(err, val) {
+    //             var order_id = val.cb_msg_obj.order_id
+    //             expect(order_id).to.exist
+    //             var order_log = seneca.make$('order_log')
+    //             order_log.list$({
+    //                 order_id: order_id
+    //             }, function(err, order_log) {
+    //                 expect(order_log[0].status).to.be.oneOf(['COMPLETE', 'CANCEL', 'REJECTED']);
+    //                 default_api_test(err, val, done)
+    //             })
+    //         })
+    //     });
+    // })
+  });
+});

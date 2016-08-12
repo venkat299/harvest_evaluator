@@ -10,6 +10,7 @@
   "dependencies": {
     "bluebird": "^3.3.5",
     "chai": "^3.5.0",
+    "joi": "^9.0.4",
     "seneca": "^2.0.1",
     "seneca-entity": "0.0.1",
     "seneca-mongo-store": "^0.2.0",
