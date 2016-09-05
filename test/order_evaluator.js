@@ -157,7 +157,7 @@ describe('Order_evaluator{}-> shadowing mode', function () {
         });
       });
     });
-    it('should approve order and forward to executor', function(done){
+    it('should approve order and forward to executor', function (done){
       this.timeout(15000);
       const curr_track_id = 'role:evaluator,cmd:approve_order';
       logger.debug('order_id', order_id);

@@ -12,7 +12,7 @@ module.exports = function (options) {
 
   this.evaluator_config = options;
   seneca.add('role:evaluator,cmd:evaluate,transaction_type:BUY', buy);
-  seneca.add('role:evaluator,cmd:evaluate,transaction_type:SELL', sell);
+  seneca.add('role:evaluator,cmd:evaluate,transaction_type:SELL', buy);
   seneca.add('role:evaluator,cmd:update_order', update_order);
 
   // ======= approve_order =========== //
